@@ -1,8 +1,10 @@
 package io.caiofernandomf.ControleProfissionais.controller;
 
 import io.caiofernandomf.ControleProfissionais.model.Contato;
+import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
 import io.caiofernandomf.ControleProfissionais.service.ContatoService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,20 +17,21 @@ public class ContatoController {
 
     private final ContatoService contatoService;
 
-    @PostMapping
-    public ResponseEntity<String> criarContato(@RequestBody Contato contato){
-        return contatoService.criarContato(contato);
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> criarContato(@RequestBody ContatoDto contatoDto){
+        return contatoService.criarContato(contatoDto);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Contato> buscarContatoPorId(@PathVariable  Long id){
+    public ResponseEntity<ContatoDto> buscarContatoPorId(@PathVariable  Long id){
         return contatoService.buscarContatoPorId(id);
 
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<String> atualizarContatoPorId(@PathVariable  Long id,@RequestBody Contato contato ){
-        return contatoService.atualizarContatoPorId(contato,id);
+    @PutMapping(value = "{id}" ,consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> atualizarContatoPorId(@PathVariable  Long id,@RequestBody ContatoDto contatoDto ){
+        return contatoService.atualizarContatoPorId(contatoDto,id);
 
     }
 
@@ -38,10 +41,11 @@ public class ContatoController {
 
     }
 
-    @GetMapping
-    public List<Contato> listarContatos(@RequestParam(required = true)  String q,
-                                    @RequestParam(required = false) List<String> campos ){
-        return contatoService.buscarPorParametros(q,campos);
+   @GetMapping
+    public List<?> listarContatos(@RequestParam(required = true)  String q,
+                                    @RequestParam(required = false, defaultValue = "") List<String> campos){
+        return contatoService.listarPorParametros(q,campos);
 
     }
+
 }

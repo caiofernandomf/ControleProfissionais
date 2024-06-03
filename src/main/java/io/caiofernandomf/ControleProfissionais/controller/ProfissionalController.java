@@ -1,8 +1,10 @@
 package io.caiofernandomf.ControleProfissionais.controller;
 
-import io.caiofernandomf.ControleProfissionais.model.Profissional;
+import io.caiofernandomf.ControleProfissionais.model.ProfissionalDto;
 import io.caiofernandomf.ControleProfissionais.service.ProfissionalService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,33 +17,34 @@ public class ProfissionalController {
 
     private ProfissionalService profissionalService;
 
-    @PostMapping
-    public ResponseEntity<String> criarContato(@RequestBody Profissional profissional){
-        return profissionalService.criarProfissional(profissional);
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> criarProfissional(@RequestBody ProfissionalDto profissionalDto){
+        return profissionalService.criarProfissional(profissionalDto);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Profissional> buscarContatoPorId(@PathVariable  Long id){
+    public ResponseEntity<ProfissionalDto> buscarProfissionalPorId(@PathVariable  Long id){
         return profissionalService.buscarProfissionalPorId(id);
 
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<String> atualizarContatoPorId(@PathVariable  Long id,@RequestBody Profissional profissional ){
-        return profissionalService.atualizarProfissionalPorId(profissional,id);
+    @PutMapping(value = "{id}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> atualizarProfissionalPorId(@PathVariable  Long id,@RequestBody ProfissionalDto profissionalDto ){
+        return profissionalService.atualizarProfissionalPorId(profissionalDto,id);
 
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> excluirContatoPorId(@PathVariable  Long id){
+    public ResponseEntity<String> excluirProfissionalPorId(@PathVariable  Long id){
         return profissionalService.excluirProfissionalPorId(id);
 
     }
 
     @GetMapping
-    public List listarContatos(@RequestParam(required = true)  String q,
-                               @RequestParam(required = false) List<String> campos ){
-        return profissionalService.buscarPorParametros(q,campos);
+    @ResponseStatus(code = HttpStatus.OK)
+    public List<?> listarProfissionais(@RequestParam(required = true)  String q,
+                               @RequestParam(required = false, defaultValue = "") List<String> campos ){
+        return profissionalService.listarPorParametros(q,campos);
 
     }
 }

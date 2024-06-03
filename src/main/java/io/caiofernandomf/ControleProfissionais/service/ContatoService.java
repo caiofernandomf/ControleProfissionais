@@ -1,15 +1,17 @@
 package io.caiofernandomf.ControleProfissionais.service;
 
 import io.caiofernandomf.ControleProfissionais.model.Contato;
+import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
+import io.caiofernandomf.ControleProfissionais.model.Profissional;
 import io.caiofernandomf.ControleProfissionais.repository.ContatoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -18,8 +20,11 @@ public class ContatoService {
     private final ContatoRepository contatoRepository;
     private EntityManager entityManager;
 
-    public ResponseEntity<String> criarContato(Contato contato){
+    public ResponseEntity<String> criarContato(ContatoDto contatoDto){
+        Contato contato = new Contato();
          try {
+
+             BeanUtils.copyProperties(contatoDto,contato);
              contatoRepository.save(contato);
 
          }catch (Exception e){
@@ -29,9 +34,10 @@ public class ContatoService {
          return ResponseEntity.ok("Sucesso contato com id {"+contato.getId()+"} cadastrado");
     }
 
-    public ResponseEntity<Contato> buscarContatoPorId(Long id){
+    public ResponseEntity<ContatoDto> buscarContatoPorId(Long id){
         return
                 contatoRepository.findById(id)
+                        .map(Contato::toDto)
                         .map(ResponseEntity::ok)
                         .orElse(ResponseEntity.ok().build());
     }
@@ -45,41 +51,53 @@ public class ContatoService {
                 }).orElse(ResponseEntity.ok().build());
     }
 
-    public ResponseEntity<String> atualizarContatoPorId(Contato contato,Long id)
+    public ResponseEntity<String> atualizarContatoPorId(ContatoDto contatoDto,Long id)
             {
         return  contatoRepository.findById(id)
                 .map(contatoToUpdate ->
                 {
+                    Profissional profissional = null;
 
-                    contatoToUpdate.setContato(contato.getContato());
-                    contatoToUpdate.setNome(contato.getNome());
-                    contatoToUpdate.setProfissional(contato.getProfissional());
+                    if(null!=contatoDto.profissional() && null!=contatoDto.profissional().id()){
+                        profissional=BeanUtils.instantiateClass(BeanUtils.getResolvableConstructor(Profissional.class));
+                        BeanUtils.copyProperties(contatoDto.profissional(),profissional);
+
+                    }
+                    contatoToUpdate.setProfissional(profissional);
+                    BeanUtils.copyProperties(contatoDto,contatoToUpdate,"id");
+
+                    contatoRepository.save(contatoToUpdate);
                     return ResponseEntity.ok().body("sucesso cadastrado alterado");
                 }).orElse(ResponseEntity.ok().build());
 
     }
 
-    public List<Contato> buscarPorParametros(String q, List<String> campos){
+    public List<?> buscarPorParametros(String q, List<String> campos){
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
         CriteriaQuery<Contato> criteriaQuery= criteriaBuilder.createQuery(Contato.class);
         Root<Contato> root = criteriaQuery.from(Contato.class);
+
+        Join<Contato, Profissional> join = root.join("profissional",JoinType.LEFT);
+        join = join.on(criteriaBuilder.equal(join.get("id"),root.get("profissional").get("id")));
 
         List<String> camposParaSelect=null;
         List<Selection<?>> listaSelection= null;
 
-        Predicate predicate = ContatoRepository.Specs.byContato(q).
-                or(ContatoRepository.Specs.byNome(q))
-                .toPredicate(root,criteriaQuery,criteriaBuilder);
+        Predicate predicate =
+                criteriaBuilder.or(criteriaBuilder.isNull(join.get("id"))
+                        ,criteriaBuilder.equal(join.get("id"),root.get("profissional").get("id")));
 
         Predicate predicate1 =
+
         criteriaBuilder.or(
                 criteriaBuilder.like(root.get("id").as(String.class),"%"+q+"%"),
                 criteriaBuilder.like(root.get("profissional").as(String.class),"%"+q+"%"),
                 criteriaBuilder.like(root.get("created_date").as(String.class),"%"+q+"%"),
                 criteriaBuilder.like(root.get("nome").as(String.class),"%"+q+"%"),
-                criteriaBuilder.like(root.get("contato").as(String.class),"%"+q+"%"));
-
+                criteriaBuilder.like(root.get("contato").as(String.class),"%"+q+"%")
+                );
 
         if(!campos.isEmpty()) {
             camposParaSelect = campos.stream()
@@ -89,14 +107,31 @@ public class ContatoService {
             System.out.println(camposParaSelect.toString());
         }
 
-        if (camposParaSelect!=null){
-            listaSelection=camposParaSelect.stream().map(s -> root.get(s).alias(s)).collect(Collectors.toList());
-            criteriaQuery=criteriaQuery.multiselect(listaSelection);
+        criteriaQuery.where(criteriaBuilder.and(predicate1));
+
+        List<String> finalCamposParaSelect = camposParaSelect;
+
+        return entityManager.createQuery(criteriaQuery).getResultStream().map(contato -> contato.toDto(finalCamposParaSelect)).toList();
+
+    }
+
+    public List<ContatoDto> listarPorParametros(String q, List<String> campos){
+
+        Boolean existemCampos = campos.stream().allMatch(s -> Contato.camposParaSelect().contains(s.toLowerCase().trim()));
+
+        if(!campos.isEmpty() && !existemCampos ){
+            throw new RuntimeException("parâmetro campos inválido");
         }
 
-    criteriaQuery.where(criteriaBuilder.or(predicate,predicate1));
+        List<String >camposParaSelect = campos.stream()
+                .flatMap(s -> Contato.camposParaSelect().stream().filter(s1 -> s1.equals(s.toLowerCase().trim())))
+                .map(String::trim)
+                .toList();
 
-    return entityManager.createQuery(criteriaQuery).getResultList();
+        return contatoRepository
+                .findAll(ContatoRepository.Specs.getLikeConditional(q)).stream()
+                .map(contato -> contato.toDto(camposParaSelect)).toList();
+
 
     }
 

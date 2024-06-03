@@ -1,19 +1,22 @@
 package io.caiofernandomf.ControleProfissionais.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import jakarta.persistence.Table;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "profissionais")
+@SoftDelete(strategy = SoftDeleteType.ACTIVE,columnName = "ativo")
+//@NamedNativeQuery(query = "SELECT * FROM Profissionais e WHERE e.id=?1 ",name = "findById")
 @Data
 @Builder
 @AllArgsConstructor
@@ -36,15 +39,17 @@ public class Profissional {
     private LocalDate nascimento;
 
     @CreationTimestamp
-    @Column(nullable = false)
+    @Column(nullable = false,updatable = false)
     private LocalDate created_date;
 
-    @JsonIgnore
-    @Column(columnDefinition = "boolean default TRUE",insertable = false)
-    private Boolean ativo;
+    /*@JsonIgnore
+    //@Column(name = "ativo",columnDefinition = "boolean default TRUE",insertable = false)
+    private Boolean ativo=true;*/
 
-    @OneToMany(mappedBy = "profissional",cascade = CascadeType.ALL)
-    @JsonManagedReference
+//    @OnDelete(action = OnDeleteAction.CASCADE)
+
+    @OneToMany(mappedBy = "profissional"/*,cascade = CascadeType.ALL,orphanRemoval = true*/)
+//    @JsonManagedReference
     @JsonIgnoreProperties("profissional")
     private List<Contato> contatos;
 
@@ -57,9 +62,9 @@ public class Profissional {
                         ,"created_date");
     }
 
-    public void inativar(){
+    /*public void inativar(){
         this.setAtivo(Boolean.FALSE);
-    }
+    }*/
 
     @Override
     public String toString() {
@@ -81,7 +86,7 @@ public class Profissional {
             strBuilder.append("]");
         }
         return "Profissional{" +
-                " ativo=" + ativo +
+                //" ativo=" + ativo +
                 ", created_date=" + created_date +
                 ", nascimento=" + nascimento +
                 ", cargo=" + cargo +
@@ -93,5 +98,39 @@ public class Profissional {
 
     public Profissional(long id){
         this.id=id;
+    }
+
+    public ProfissionalDto toDto(){
+        ProfissionalDto profissionalDto=new ProfissionalDto(
+                this.id,this.nome,this.cargo,this.nascimento,this.created_date,null);
+
+        return profissionalDto;
+    }
+
+    public ProfissionalDto toDto(List<String> camposParaPrjection){
+        ProfissionalDto profissionalDto = null;
+
+
+        if(null!=camposParaPrjection && !camposParaPrjection.isEmpty())
+            profissionalDto=new ProfissionalDto(
+                    camposParaPrjection.contains("id")?this.id:null
+                    ,camposParaPrjection.contains("nome")?this.nome:null
+                    ,camposParaPrjection.contains("cargo")?this.cargo:null
+                    ,camposParaPrjection.contains("nascimento")?this.nascimento:null
+                    ,camposParaPrjection.contains("created_date")?this.created_date:null
+                    ,null
+            );
+        else
+            profissionalDto=mapToDto();
+
+        return profissionalDto;
+    }
+
+    public ProfissionalDto mapToDto(){
+        List<ContatoDto> listaContatoDto = contatos.stream().filter(Objects::nonNull).map(Contato::mapToDto).toList();
+        ProfissionalDto profissionalDto=new ProfissionalDto(
+                this.id,this.nome,this.cargo,this.nascimento,this.created_date,listaContatoDto);
+
+        return profissionalDto;
     }
 }
