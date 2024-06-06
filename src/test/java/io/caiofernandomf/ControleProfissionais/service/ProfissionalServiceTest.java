@@ -1,8 +1,10 @@
 package io.caiofernandomf.ControleProfissionais.service;
 
+import io.caiofernandomf.ControleProfissionais.model.Contato;
 import io.caiofernandomf.ControleProfissionais.model.Profissional;
 import io.caiofernandomf.ControleProfissionais.model.ProfissionalDto;
 import io.caiofernandomf.ControleProfissionais.model.TipoCargo;
+import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ProfissionalRepository;
 import io.caiofernandomf.ControleProfissionais.service.mock.MockData;
 import jakarta.inject.Inject;
@@ -21,8 +23,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,7 +66,7 @@ class ProfissionalServiceTest {
     void buscarProfissionalPorId() {
 
         var profissional = MockData.createProfissional(MockData.createProfissionalDto());
-        var profissionalDto = profissional.toDto();
+        var profissionalDto = BeanUtilsMapper.profissionalToDto(profissional,null);
         when(profissionalRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(
                         profissional
@@ -117,6 +121,9 @@ class ProfissionalServiceTest {
     void listarPorParametros() {
         var profissional1 = MockData.createProfissional(MockData.createProfissionalDto());
         var profissional2 = MockData.createProfissionalToUpdate(MockData.createProfissionalDtoToUpdate());
+        var contato2 = MockData.createContatoToUpdate();
+        profissional2.setContatos(List.of(contato2));
+
 
         when(profissionalRepository.findAll(any(Specification.class))).thenReturn(List.of(profissional2,profissional1));
 
@@ -128,5 +135,6 @@ class ProfissionalServiceTest {
         assertEquals(2, lista.size());
         assertTrue(lista.stream().allMatch(p-> null==p.id() && null==p.created_date() && null==p.contatos() &&
                 null!=p.nome() && null!=p.cargo() && null!=p.nascimento()));
+
     }
 }
