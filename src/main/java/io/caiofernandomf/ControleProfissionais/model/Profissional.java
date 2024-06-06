@@ -86,8 +86,7 @@ public class Profissional {
             strBuilder.append("]");
         }
         return "Profissional{" +
-                //" ativo=" + ativo +
-                ", created_date=" + created_date +
+                " created_date=" + created_date +
                 ", nascimento=" + nascimento +
                 ", cargo=" + cargo +
                 ", nome='" + nome + '\'' +

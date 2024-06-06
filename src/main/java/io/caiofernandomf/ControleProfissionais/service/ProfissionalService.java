@@ -2,6 +2,7 @@ package io.caiofernandomf.ControleProfissionais.service;
 
 import io.caiofernandomf.ControleProfissionais.model.Profissional;
 import io.caiofernandomf.ControleProfissionais.model.ProfissionalDto;
+import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ProfissionalRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
@@ -40,7 +41,7 @@ public class ProfissionalService {
 
         return
                 profissionalRepository.findById(id)
-                        .map(Profissional::toDto)
+                        .map(profissional -> BeanUtilsMapper.profissionalToDto(profissional,null))
                         .map(ResponseEntity::ok)
                         .orElse(ResponseEntity.ok().build());
     }
@@ -63,7 +64,7 @@ public class ProfissionalService {
         return  profissionalRepository.findById(id)
                 .map(profissionalToUpdate ->
                 {
-                    BeanUtils.copyProperties(profissionalDto,profissionalToUpdate,"id","contatos");
+                    BeanUtilsMapper.copyProperties(profissionalDto,profissionalToUpdate,"id","contatos");
 
                     profissionalRepository.save(profissionalToUpdate);
 
@@ -130,7 +131,7 @@ public class ProfissionalService {
 
         return profissionalRepository
                 .findAll(ProfissionalRepository.getLikeConditional(q)).stream()
-                .map(profissional -> profissional.toDto(camposParaSelect)).toList();
+                .map(profissional -> BeanUtilsMapper.profissionalToDto(profissional,camposParaSelect)).toList();
 
 
     }

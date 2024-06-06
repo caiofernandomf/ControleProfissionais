@@ -3,6 +3,7 @@ package io.caiofernandomf.ControleProfissionais.service;
 import io.caiofernandomf.ControleProfissionais.model.Contato;
 import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
 import io.caiofernandomf.ControleProfissionais.model.Profissional;
+import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ContatoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
@@ -37,7 +38,7 @@ public class ContatoService {
     public ResponseEntity<ContatoDto> buscarContatoPorId(Long id){
         return
                 contatoRepository.findById(id)
-                        .map(Contato::toDto)
+                        .map(contato -> BeanUtilsMapper.contatoToDto(contato,null))
                         .map(ResponseEntity::ok)
                         .orElse(ResponseEntity.ok().build());
     }
@@ -56,17 +57,10 @@ public class ContatoService {
         return  contatoRepository.findById(id)
                 .map(contatoToUpdate ->
                 {
-                    Profissional profissional = null;
-
-                    if(null!=contatoDto.profissional() && null!=contatoDto.profissional().id()){
-                        profissional=BeanUtils.instantiateClass(BeanUtils.getResolvableConstructor(Profissional.class));
-                        BeanUtils.copyProperties(contatoDto.profissional(),profissional);
-
-                    }
-                    contatoToUpdate.setProfissional(profissional);
-                    BeanUtils.copyProperties(contatoDto,contatoToUpdate,"id");
+                    BeanUtilsMapper.contatoDtoToContatoUpdate(contatoDto,contatoToUpdate);
 
                     contatoRepository.save(contatoToUpdate);
+
                     return ResponseEntity.ok().body("sucesso cadastrado alterado");
                 }).orElse(ResponseEntity.ok().build());
 
@@ -130,7 +124,7 @@ public class ContatoService {
 
         return contatoRepository
                 .findAll(ContatoRepository.Specs.getLikeConditional(q)).stream()
-                .map(contato -> contato.toDto(camposParaSelect)).toList();
+                .map(contato -> BeanUtilsMapper.contatoToDto(contato,camposParaSelect)).toList();
 
 
     }

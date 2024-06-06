@@ -58,11 +58,11 @@ public class Contato {
         if(this.profissional !=null){
             stringBuilder.append("Profissional{");
             //stringBuilder.append(" ativo=" + this.profissional.getAtivo());
-            stringBuilder.append(", created_date=" + this.profissional.getCreated_date() );
+            stringBuilder.append(" created_date=" + this.profissional.getCreated_date() );
             stringBuilder.append(", nascimento=" + this.profissional.getNascimento());
             stringBuilder.append(", cargo=" + this.profissional.getCargo());
-            stringBuilder.append(", nome='" + nome + '\'' );
-            stringBuilder.append(", id=" + id );
+            stringBuilder.append(", nome='" + this.profissional.getNome() + '\'' );
+            stringBuilder.append(", id=" + this.profissional.getId() );
             stringBuilder.append( "}");
         }
 

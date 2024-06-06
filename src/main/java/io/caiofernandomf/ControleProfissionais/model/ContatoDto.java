@@ -1,8 +1,6 @@
 package io.caiofernandomf.ControleProfissionais.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
