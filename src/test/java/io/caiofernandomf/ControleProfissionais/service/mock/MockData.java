@@ -1,9 +1,7 @@
 package io.caiofernandomf.ControleProfissionais.service.mock;
 
-import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
-import io.caiofernandomf.ControleProfissionais.model.Profissional;
-import io.caiofernandomf.ControleProfissionais.model.ProfissionalDto;
-import io.caiofernandomf.ControleProfissionais.model.TipoCargo;
+import io.caiofernandomf.ControleProfissionais.model.*;
+import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDate;
@@ -45,11 +43,26 @@ public class MockData {
     public static Profissional createProfissional(ProfissionalDto profissionalDto){
         return
                 Profissional.builder().
-                        id(1l).
+                        id(1L).
                         nome(profissionalDto.nome())
                         .cargo(profissionalDto.cargo()).
                         nascimento(profissionalDto.nascimento()).
                         created_date(LocalDate.now())
                         .build();
+    }
+
+    public static ContatoDto createContatoDto(){
+        Object[] dados = new Object[]{null,"Whatsapp","21980680527",null,createProfissionalDtoToUpdate()};
+        return BeanUtilsMapper.instantiateClass(BeanUtils.getResolvableConstructor(ContatoDto.class), dados);
+    }
+
+    public static Contato createContatoToUpdate(){
+        return Contato.
+                builder()
+                .id(3L)
+                .nome("wpp")
+                .contato("21999999999")
+                .created_date(LocalDate.now())
+                .profissional(null).build();
     }
 }
