@@ -1,23 +1,17 @@
 package io.caiofernandomf.ControleProfissionais.service;
 
-import io.caiofernandomf.ControleProfissionais.model.Contato;
 import io.caiofernandomf.ControleProfissionais.model.Profissional;
 import io.caiofernandomf.ControleProfissionais.model.ProfissionalDto;
 import io.caiofernandomf.ControleProfissionais.model.TipoCargo;
 import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ProfissionalRepository;
 import io.caiofernandomf.ControleProfissionais.service.mock.MockData;
-import jakarta.inject.Inject;
-import org.assertj.core.api.Assertions;
-import org.checkerframework.framework.qual.StubFiles;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.internal.matchers.Any;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.VerificationMode;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 
@@ -25,12 +19,15 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProfissionalServiceTest {
@@ -130,11 +127,42 @@ class ProfissionalServiceTest {
         String q= "Fernando";
         List<String> campos=List.of("nome","cargo","nascimento");
         List<ProfissionalDto> lista= profissionalService.listarPorParametros(q,campos);
-
+        lista.forEach(System.out::println);
         verify(profissionalRepository).findAll(any(Specification.class));
         assertEquals(2, lista.size());
         assertTrue(lista.stream().allMatch(p-> null==p.id() && null==p.created_date() && null==p.contatos() &&
                 null!=p.nome() && null!=p.cargo() && null!=p.nascimento()));
+
+    }
+
+    @Test
+    @DisplayName("Deve listar profissionais baseado no parâmetro(q) com sucesso")
+    void listarSemParametroCampos() {
+        var profissional1 = MockData.createProfissional(MockData.createProfissionalDto());
+        var profissional2 = MockData.createProfissionalToUpdate(MockData.createProfissionalDtoToUpdate());
+        var contato2 = MockData.createContatoToUpdate();
+        profissional2.setContatos(List.of(contato2));
+
+        when(profissionalRepository.findAll(any(Specification.class))).thenReturn(List.of(profissional2,profissional1));
+
+        String q= "Fernando";
+
+        List<ProfissionalDto> lista= profissionalService.listarPorParametros(q,new ArrayList<>());
+        lista.forEach(System.out::println);
+        verify(profissionalRepository).findAll(any(Specification.class));
+        assertEquals(2, lista.size());
+        AtomicInteger contContatoNulo = new AtomicInteger(0);
+        assertTrue(lista.stream()
+                .peek(p->{
+                    if (Objects.isNull(p.contatos()))
+                        contContatoNulo.incrementAndGet();
+                }
+                )
+                .allMatch(p-> Objects.nonNull(p.id()) && Objects.nonNull(p.created_date())
+                && Objects.nonNull(p.nome())
+                && Objects.nonNull(p.cargo())
+                && Objects.nonNull(p.nascimento())));
+        assertEquals(1,contContatoNulo.intValue());
 
     }
 }

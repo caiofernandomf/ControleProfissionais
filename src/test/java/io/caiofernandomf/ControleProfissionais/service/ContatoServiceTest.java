@@ -1,6 +1,7 @@
 package io.caiofernandomf.ControleProfissionais.service;
 
-import io.caiofernandomf.ControleProfissionais.model.*;
+import io.caiofernandomf.ControleProfissionais.model.Contato;
+import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
 import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ContatoRepository;
 import io.caiofernandomf.ControleProfissionais.service.mock.MockData;
@@ -16,7 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
-import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -142,8 +143,32 @@ class ContatoServiceTest {
         assertTrue(lista.stream().allMatch(p->
                 Objects.isNull(p.created_date()) && Objects.nonNull(p.id()) && Objects.nonNull(p.nome())
                 && Objects.nonNull(p.contato())));
+    }
 
-        /*assertEquals(1, lista.stream().filter(c -> Objects.isNull(c.profissional())).count());
-        assertEquals(1, lista.stream().filter(c -> Objects.nonNull(c.profissional())).count());*/
+    @Test
+    @DisplayName("Deve listar contatos baseado nos parâmetro(q) com sucesso")
+    void listarSemParametroCampos() {
+        var contato1 = MockData.createContatoToUpdate();
+        var contatoDto = MockData.createContatoDto();
+        var contato2 = new Contato();
+        BeanUtilsMapper.contatoDtoToContatoUpdate(contatoDto,contato2);
+        contato2.setId(4L);
+        contato2.setCreated_date(LocalDate.now());
+
+        when(contatoRepository.findAll(any(Specification.class))).thenReturn(List.of(contato2,contato1));
+
+        String q= "21";
+        List<ContatoDto> lista= contatoService.listarPorParametros(q,new ArrayList<>());
+
+        verify(contatoRepository).findAll(any(Specification.class));
+        assertEquals(2, lista.size());
+        assertTrue(lista.stream().allMatch(p->
+                Objects.nonNull(p.created_date()) && Objects.nonNull(p.id()) && Objects.nonNull(p.nome())
+                        && Objects.nonNull(p.contato())));
+        assertEquals(1,
+                lista.stream()
+                        .filter(c->Objects.nonNull(c.profissional().id()))
+                        .count());
+
     }
 }
