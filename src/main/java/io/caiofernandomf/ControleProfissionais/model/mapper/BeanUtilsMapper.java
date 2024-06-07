@@ -8,12 +8,15 @@ import org.springframework.beans.BeanUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class BeanUtilsMapper extends BeanUtils {
 
     public static ContatoDto contatoToDto(Contato contato, List<String> camposParaPrjection){
+
         List<String> campos =
-                (Objects.nonNull(camposParaPrjection) ? camposParaPrjection: Contato.camposParaSelect());
+                (!checkCamposParaProjectionVazio(camposParaPrjection)
+                        ? camposParaPrjection: Contato.camposParaSelect());
 
         ContatoDto contatoDto=
                 instantiateClass(getResolvableConstructor(ContatoDto.class)
@@ -23,16 +26,23 @@ public abstract class BeanUtilsMapper extends BeanUtils {
     }
 
     public static ProfissionalDto profissionalToDto(Profissional profissional,List<String> camposParaPrjection){
+        Boolean listaEstaVazia = checkCamposParaProjectionVazio(camposParaPrjection);
         List<String> campos =
-                (Objects.nonNull(camposParaPrjection) ? camposParaPrjection: Profissional.camposParaSelect());
-
-        Boolean exibeContatos = (Objects.isNull(camposParaPrjection) || camposParaPrjection.isEmpty());
+                (!listaEstaVazia
+                        ? camposParaPrjection: Profissional.camposParaSelect());
 
         ProfissionalDto profissionalDto=
                 instantiateClass(getResolvableConstructor(ProfissionalDto.class)
-                        ,getDadosProfissional(profissional,exibeContatos,campos));
+                        ,getDadosProfissional(profissional,listaEstaVazia,campos));
 
         return profissionalDto;
+    }
+
+    private static Boolean checkCamposParaProjectionVazio(List<String> camposParaPrjection){
+        Optional<List<String>> optionalList = Optional.ofNullable(camposParaPrjection);
+        return
+                (optionalList.isEmpty() || optionalList.get().isEmpty());
+
     }
 
     private static Object[] getDadosContato(Contato contato, Boolean comProfissional, List<String> camposParaPrjection){
