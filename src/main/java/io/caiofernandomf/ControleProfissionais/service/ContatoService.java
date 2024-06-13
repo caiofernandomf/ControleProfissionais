@@ -5,6 +5,7 @@ import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
 import io.caiofernandomf.ControleProfissionais.model.Profissional;
 import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ContatoRepository;
+import io.caiofernandomf.ControleProfissionais.repository.ProfissionalRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ public class ContatoService {
 
     private final ContatoRepository contatoRepository;
     private EntityManager entityManager;
+    private final ProfissionalRepository profissionalRepository;
 
     public ResponseEntity<String> criarContato(ContatoDto contatoDto){
         Contato contato = new Contato();
@@ -57,6 +59,7 @@ public class ContatoService {
         return  contatoRepository.findById(id)
                 .map(contatoToUpdate ->
                 {
+                    verificaProfissionalExiste(contatoDto);
                     BeanUtilsMapper.contatoDtoToContatoUpdate(contatoDto,contatoToUpdate);
 
                     contatoRepository.save(contatoToUpdate);
@@ -64,6 +67,13 @@ public class ContatoService {
                     return ResponseEntity.ok().body("sucesso cadastrado alterado");
                 }).orElse(ResponseEntity.ok().build());
 
+    }
+
+    private void verificaProfissionalExiste(ContatoDto contatoDto)throws RuntimeException{
+        if(Objects.nonNull(contatoDto.profissional()) && Objects.nonNull(contatoDto.profissional().id())){
+            if(!profissionalRepository.existsById(contatoDto.profissional().id()))
+                throw new RuntimeException("Profissional não encontrado, não será possível atualizar este contato");
+        }
     }
 
     public List<?> buscarPorParametros(String q, List<String> campos){
