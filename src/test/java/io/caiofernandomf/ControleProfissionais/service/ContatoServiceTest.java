@@ -4,6 +4,7 @@ import io.caiofernandomf.ControleProfissionais.model.Contato;
 import io.caiofernandomf.ControleProfissionais.model.ContatoDto;
 import io.caiofernandomf.ControleProfissionais.model.mapper.BeanUtilsMapper;
 import io.caiofernandomf.ControleProfissionais.repository.ContatoRepository;
+import io.caiofernandomf.ControleProfissionais.repository.ProfissionalRepository;
 import io.caiofernandomf.ControleProfissionais.service.mock.MockData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,16 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 class ContatoServiceTest {
 
     @Mock
     ContatoRepository contatoRepository;
+
+    @Mock
+    ProfissionalRepository profissionalRepository;
 
     @InjectMocks
     ContatoService contatoService;
@@ -99,11 +104,11 @@ class ContatoServiceTest {
         var contatoDto = MockData.createContatoDto();
         var contato = MockData.createContatoToUpdate();
 
-
         when(contatoRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(
                         contato
                 ));
+        when(profissionalRepository.existsById(any(Long.class))).thenReturn(Boolean.TRUE);
         System.out.println(contato);
         ResponseEntity<String> responseEntity =
                 contatoService.atualizarContatoPorId(contatoDto,3L);
@@ -115,6 +120,40 @@ class ContatoServiceTest {
         System.out.println(contato);
         System.out.println(contatoDto);
         assertTrue(contato.getNome().equals(contatoDto.nome())
+                && contato.getContato().equals(contatoDto.contato())
+                && contato.getProfissional().getId().equals(contatoDto.profissional().id())
+                //&& contato.getCreated_date().equals(contatoDto.created_date())
+                && contato.getId().equals(3L));
+
+    }
+
+    @Test
+    @DisplayName("Deve lançar uma RuntimeException ao atualizar um contato por id")
+    void atualizarContatoPorIdComException() {
+        var contatoDto = MockData.createContatoDto();
+        var contato = MockData.createContatoToUpdate();
+
+        when(profissionalRepository.existsById(any(Long.class)))
+                .thenReturn(false);
+        when(contatoRepository.findById(any(Long.class)))
+                .thenReturn(Optional.of(
+                        contato
+                ));
+        System.out.println(contato);
+        AtomicReference<ResponseEntity<String>> responseEntity = new AtomicReference<>();
+        assertThrows(RuntimeException.class,
+                ()-> responseEntity.set(contatoService.atualizarContatoPorId(contatoDto, 3L)));
+
+        System.out.println("ResponseEntity: "+responseEntity.get());
+
+        verify(contatoRepository).findById(3L);
+        verify(contatoRepository,never()).save(contato);
+        //verify(contatoRepository).save(contato);
+
+        assertNull(responseEntity.get());
+        System.out.println(contato);
+        System.out.println(contatoDto);
+        assertFalse(contato.getNome().equals(contatoDto.nome())
                 && contato.getContato().equals(contatoDto.contato())
                 && contato.getProfissional().getId().equals(contatoDto.profissional().id())
                 //&& contato.getCreated_date().equals(contatoDto.created_date())
@@ -135,7 +174,7 @@ class ContatoServiceTest {
         when(contatoRepository.findAll(any(Specification.class))).thenReturn(List.of(contato2,contato1));
 
         String q= "21";
-        List<String> campos=List.of("id","nome","contato","profissional");
+        List<String> campos=List.of("id","nome","contato");//,"profissional"
         List<ContatoDto> lista= contatoService.listarPorParametros(q,campos);
 
         verify(contatoRepository).findAll(any(Specification.class));
