@@ -1,0 +1,20 @@
+[
+  {
+    "id": 5,
+    "nome": "Renan Lucas Freitas",
+    "cargo": "TESTER",
+    "nascimento": "1996-03-19"
+  },
+  {
+    "id": 6,
+    "nome": "Gael Nicolas Rodrigues",
+    "cargo": "TESTER",
+    "nascimento": "1996-02-27"
+  },
+  {
+    "id": 7,
+    "nome": "Luiz Manuel Marcos da Costa",
+    "cargo": "DESENVOLVEDOR",
+    "nascimento": "1996-05-07"
+  }
+]

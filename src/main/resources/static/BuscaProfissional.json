@@ -1,0 +1,27 @@
+{
+  "id": 5,
+  "nome": "Renan Lucas Freitas",
+  "cargo": "TESTER",
+  "nascimento": "1996-03-16",
+  "created_date": "2024-04-30",
+  "contatos": [
+    {
+      "id": 18,
+      "nome": "Celular",
+      "contato": "21980680523",
+      "created_date": "2024-05-01"
+    },
+    {
+      "id": 19,
+      "nome": "Celular",
+      "contato": "21999999999",
+      "created_date": "2024-05-01"
+    },
+    {
+      "id": 20,
+      "nome": "Celular",
+      "contato": "21909859594",
+      "created_date": "2024-05-02"
+    }
+  ]
+}

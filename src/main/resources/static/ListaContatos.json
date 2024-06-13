@@ -1,0 +1,42 @@
+[
+  {
+    "id": 2,
+    "nome": "Celular",
+    "contato": "21993292623"
+  },
+  {
+    "id": 6,
+    "nome": "Celular",
+    "contato": "21980680528"
+  },
+  {
+    "id": 7,
+    "nome": "Fixo",
+    "contato": "2138303030"
+  },
+  {
+    "id": 8,
+    "nome": "Fixo",
+    "contato": "2138303033"
+  },
+  {
+    "id": 18,
+    "nome": "Celular",
+    "contato": "21993292624"
+  },
+  {
+    "id": 19,
+    "nome": "Celular",
+    "contato": "2199056307"
+  },
+  {
+    "id": 20,
+    "nome": "Celular",
+    "contato": "21909859594"
+  },
+  {
+    "id": 21,
+    "nome": "Whatsapp",
+    "contato": "21980681727"
+  }
+]
