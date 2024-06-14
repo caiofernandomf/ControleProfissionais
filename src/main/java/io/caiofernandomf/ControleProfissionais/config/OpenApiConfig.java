@@ -9,10 +9,11 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -27,18 +28,16 @@ import java.util.Map;
 @Configuration
 public class OpenApiConfig {
 
-    @Value("src/main/resources/static")
-    private String urlExamples;
-
-
     @Setter
     private Map<String,String> description;
 
     @SneakyThrows
     private Components getComponent(){
+        Resource resource = new ClassPathResource("static");
 
-        Path path = Paths.get(urlExamples);
+        Path path = Paths.get(resource.getURI());
         List<Path> lista = new ArrayList<>();
+
 
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(path)){
             stream.forEach(lista::add);
