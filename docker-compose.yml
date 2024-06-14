@@ -1,0 +1,28 @@
+services:
+  database:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - my-net
+
+
+  my-app:
+    container_name: controle-profissionais
+    depends_on:
+      - database
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - my-net
+
+networks:
+  my-net:
+    driver: bridge
+
